@@ -1,0 +1,15 @@
+version: "2"
+services:
+  shortlink:
+    build: .
+    environment:
+      POSTGRES_DSN: postgres://root@postgres/shortlink
+      SERVER_LISTEN_ADDR: ":8000"
+      HEALTHCHECK_LISTEN_ADDR: ":9000"
+    depends_on: 
+      - postgres
+    ports:
+      - "8000:8000"
+      - "9000:9000"
+  postgres:
+    image: postgres:latest
