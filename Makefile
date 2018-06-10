@@ -23,7 +23,7 @@ image-and-push: test image
 	docker push $(IMAGE_NAME)
 
 test:
-	docker-compose run --rm test
+	go test
 
 run: GOOS = linux
 run: build
