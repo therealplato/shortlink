@@ -8,6 +8,7 @@ GOARCH = amd64
 all: image
 
 clean:
+	docker-compose kill
 	rm -f ${ARTIFACT}
 
 build: clean
@@ -27,4 +28,7 @@ test:
 
 run: GOOS = linux
 run: build
-	docker-compose up --build shortlink
+	docker-compose up -d --build shortlink
+
+bake: clean run
+	curl -s localhost:8000 > testdata/root.golden.html
