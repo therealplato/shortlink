@@ -8,9 +8,8 @@ import (
 )
 
 func TestShortlinkIsURLSafe(t *testing.T) {
-	s := &shortlink{}
-	l := s.New()
-	u := url.URL{Path: l}
+	sl := New("hjkl")
+	u := url.URL{Path: sl.slug}
 	enc := u.EscapedPath()
-	assert.Equal(t, l, enc)
+	assert.Equal(t, sl.slug, enc)
 }
