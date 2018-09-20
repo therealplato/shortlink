@@ -11,18 +11,12 @@ import (
 	"github.com/therealplato/lifecycle"
 )
 
-type postgresStore struct {
-	DSN string
-}
-
 func main() {
 	l := lifecycle.Begin()
 	go l.HealthCheck(os.Getenv("HEALTHCHECK_LISTEN_ADDR"))
 	e := &endpoint{
-		ctx: l.Ctx,
-		store: postgresStore{
-			DSN: os.Getenv("POSTGRES_DSN"),
-		},
+		ctx:   l.Ctx,
+		store: NewPQStore(os.Getenv("POSTGRES_DSN")),
 	}
 
 	s := http.Server{

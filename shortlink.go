@@ -1,19 +1,14 @@
 package main
 
-import "strings"
+import (
+	"net/http"
+	"strings"
+)
 
 type shortlink struct {
 	slug string
 	link string
 	base string
-}
-
-func New(link string) shortlink {
-	return shortlink{
-		slug: "asdf",
-		link: link,
-		base: "https://base/",
-	}
 }
 
 func (s shortlink) String() string {
@@ -22,4 +17,9 @@ func (s shortlink) String() string {
 
 func (s shortlink) Target() string {
 	return s.link
+}
+
+func (s shortlink) Handle(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Location", s.String())
+	w.WriteHeader(http.StatusMovedPermanently)
 }
