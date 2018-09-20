@@ -7,14 +7,15 @@ import (
 )
 
 func TestStoreLooksUpShortlink(t *testing.T) {
-	s := store{}
+	s := pqStore{}
 	expected := "http://localhost:8000/asdf"
-	link := s.Lookup("asdf")
+	link, err := s.Lookup("asdf")
+	assert.Nil(t, err)
 	assert.Equal(t, expected, link.String())
 }
 
 func TestStoreSavesShortlink(t *testing.T) {
-	s := store{}
+	s := pqStore{}
 	sl := shortlink{slug: "asdf"}
 	err := s.Save(sl)
 	assert.Nil(t, err)

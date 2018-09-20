@@ -5,22 +5,24 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/therealplato/lifecycle"
 )
 
 func main() {
+	log.Println("loading config...")
+	cfg := MustLoadConfig()
+	log.Println("config loaded")
 	l := lifecycle.Begin()
-	go l.HealthCheck(os.Getenv("HEALTHCHECK_LISTEN_ADDR"))
+	go l.HealthCheck(cfg.HealthcheckAddr)
 	e := &endpoint{
 		ctx:   l.Ctx,
-		store: NewPQStore(os.Getenv("POSTGRES_DSN")),
+		store: NewPQStore(cfg),
 	}
 
 	s := http.Server{
-		Addr:    os.Getenv("SERVER_LISTEN_ADDR"),
+		Addr:    cfg.ShortlinkAddr,
 		Handler: e,
 	}
 	go func() {
