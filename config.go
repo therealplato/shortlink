@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/url"
 	"os"
@@ -36,6 +35,5 @@ func MustLoadConfig() config {
 	if cfg.BaseURL == "" || err != nil || !trailingSlash.MatchString(cfg.BaseURL) {
 		log.Fatal("BASE_URL must be set, valid, and have a trailing slash")
 	}
-	fmt.Printf("%#v\n", cfg)
 	return cfg
 }

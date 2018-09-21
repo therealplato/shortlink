@@ -15,11 +15,16 @@ func TestStoreLooksUpShortlink(t *testing.T) {
 }
 
 func TestStoreSavesShortlink(t *testing.T) {
-	s := pqStore{}
-	sl := shortlink{slug: "asdf"}
-	err := s.Save(sl)
-	assert.Nil(t, err)
-	assert.Equal(t, "asdf", sl.slug)
-	assert.Equal(t, "https://base/asdf", sl.String())
-	assert.Equal(t, "https://src/target", sl.Target())
+	t.Run("with missing link", func(t *testing.T) {
+		s := pqStore{}
+		sl := shortlink{slug: "asdf"}
+		err := s.Save(sl)
+		assert.NotNil(t, err)
+	})
+	t.Run("with present link", func(t *testing.T) {
+		s := pqStore{}
+		sl := shortlink{slug: "asdf", link: "https://duckduckgo.com"}
+		err := s.Save(sl)
+		assert.NotNil(t, err)
+	})
 }
