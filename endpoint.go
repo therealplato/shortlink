@@ -74,23 +74,7 @@ func (e *endpoint) create(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleNotFound(w http.ResponseWriter) {
-	mm := []string{
-		"excuse me waiter, there's a 404 in my link",
-		"404 outlook not so good",
-		"do you like pina coladas, and getting FILE NOT FOUND?",
-		"always, I know, you'll be, 404",
-		"it's a bittersweet symphony, this 404",
-		"hey now, you're a rockstar, get the show on, 404",
-		"sorry girl, but you missed out, well tough luck that 404's now",
-		"music hits me, so hard, makes me say, 404",
-		"i'm blue, 404044, 404, 404, 404044 (4 4 4..)",
-		"if you wanna be my lover, you gotta 404 my friends",
-		"if I 404 will you still call me superman?",
-		"oops I did it again",
-		"you better lose yourself in the music, the moment, you hold it, you better never 404",
-		"i feel stupid, and contagious, 404 now, imitate us",
-	}
-	m := mm[rand.Intn(len(mm))]
+	m := excuses[rand.Intn(len(excuses))]
 	w.WriteHeader(http.StatusNotFound)
 	w.Write([]byte(m))
 }
@@ -104,4 +88,11 @@ func slugify(s string) string {
 	s = rxDashes.ReplaceAllString(s, "-")
 	s = strings.Trim(s, "-")
 	return s
+}
+
+func randomSlug() string {
+	a := fragments[rand.Intn(len(fragments))]
+	b := fragments[rand.Intn(len(fragments))]
+	c := fragments[rand.Intn(len(fragments))]
+	return fmt.Sprintf("%s-%s-%s", a, b, c)
 }

@@ -21,7 +21,7 @@ var root = []byte(`<!DOCTYPE html>
 </style>
 </head>
 <body>
-	<form action="/create/" method="post">
+	<form action="/create" method="post">
 		<input type="text" name="link" placeholder="https://github.com/therealplato/shortlink/issues">
 		<input type="submit" value="Shorten">
 	</form>
