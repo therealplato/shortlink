@@ -23,31 +23,31 @@ func TestRootRendersUI(t *testing.T) {
 }
 
 func TestCreation(t *testing.T) {
-	t.Run("to a new destination", func(t *testing.T) {
+	t.Run("from root form post", func(t *testing.T) {
 		t.Skip("unimplemented")
-		assert.True(t, false, "should have created")
+		assert.True(t, false, "should have created and previewed shortlink")
 	})
-	t.Run("to an existing destination", func(t *testing.T) {
+	t.Run("from link suffix to a new destination", func(t *testing.T) {
 		t.Skip("unimplemented")
-		assert.True(t, false, "should have redirected")
+		assert.True(t, false, "should have created and previewed shortlink")
+	})
+	t.Run("from link suffix to an existing destination", func(t *testing.T) {
+		t.Skip("unimplemented")
+		assert.True(t, false, "should have previewed existing shortlink")
 	})
 }
 
-func TestRedirects(t *testing.T) {
-	t.Run("to a valid shortlink", func(t *testing.T) {
+func TestLookup(t *testing.T) {
+	t.Run("from valid shortlink to long link", func(t *testing.T) {
 		t.Skip("unimplemented")
 		assert.True(t, false, "should have redirected")
 	})
-	t.Run("to an invalid shortlink", func(t *testing.T) {
+	t.Run("from invalid shortlink to 404", func(t *testing.T) {
 		t.Skip("unimplemented")
 		assert.True(t, false, "should have 404'd")
 	})
-	t.Run("when shortlink service was the referrer", func(t *testing.T) {
+	t.Run("with /preview/ prefix", func(t *testing.T) {
 		t.Skip("unimplemented")
-		assert.True(t, false, "should have displayed html link rather than redirecting")
-	})
-	t.Run("when the path includes prefix segments", func(t *testing.T) {
-		t.Skip("unimplemented")
-		assert.True(t, false, "should have prefixed plato-a-")
+		assert.True(t, false, "should have displayed both links")
 	})
 }
