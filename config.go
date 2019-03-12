@@ -11,7 +11,7 @@ type config struct {
 	HealthcheckAddr string
 	ShortlinkAddr   string
 	BaseURL         string
-	PostgresURL     string
+	PostgresURI     string
 }
 
 func MustLoadConfig() config {
@@ -19,7 +19,7 @@ func MustLoadConfig() config {
 		HealthcheckAddr: os.Getenv("HEALTHCHECK_LISTEN_ADDR"),
 		ShortlinkAddr:   os.Getenv("SHORTLINK_LISTEN_ADDR"),
 		BaseURL:         os.Getenv("BASE_URL"),
-		PostgresURL:     os.Getenv("POSTGRES_URL"),
+		PostgresURI:     os.Getenv("POSTGRES_URI"),
 	}
 	if cfg.HealthcheckAddr == "" {
 		log.Fatal("HEALTHCHECK_LISTEN_ADDR must be set")
@@ -27,8 +27,8 @@ func MustLoadConfig() config {
 	if cfg.ShortlinkAddr == "" {
 		log.Fatal("SHORTLINK_LISTEN_ADDR must be set")
 	}
-	if cfg.PostgresURL == "" {
-		log.Fatal("POSTGRES_URL must be set")
+	if cfg.PostgresURI == "" {
+		log.Fatal("POSTGRES_URI must be set")
 	}
 	trailingSlash := regexp.MustCompile("/$")
 	_, err := url.Parse(cfg.BaseURL)

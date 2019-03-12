@@ -3,7 +3,7 @@ services:
   shortlink:
     build: .
     environment:
-      POSTGRES_URL: postgres://root@postgres/shortlink
+      POSTGRES_URI: postgres://root@postgres/shortlink
       SHORTLINK_LISTEN_ADDR: ":8000"
       HEALTHCHECK_LISTEN_ADDR: ":9000"
       BASE_URL: "http://localhost:8000/"

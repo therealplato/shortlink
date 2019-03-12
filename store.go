@@ -14,7 +14,7 @@ type pqStore struct {
 
 func NewPQStore(cfg config) *pqStore {
 	return &pqStore{
-		URI:     cfg.PostgresURL,
+		URI:     cfg.PostgresURI,
 		baseURL: cfg.BaseURL,
 	}
 }
