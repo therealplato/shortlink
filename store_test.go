@@ -6,10 +6,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestStoreLooksUpShortlink(t *testing.T) {
+func TestPQStoreLookupSlug(t *testing.T) {
 	s := pqStore{}
 	expected := "http://localhost:8000/asdf"
-	link, err := s.Lookup("asdf")
+	link, err := s.LookupSlug("asdf")
 	assert.Nil(t, err)
 	assert.Equal(t, expected, link.String())
 }

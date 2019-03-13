@@ -19,7 +19,7 @@ func TestGolden(t *testing.T) {
 		bb, err := ioutil.ReadAll(res.Body)
 		assert.Nil(t, err)
 		golden, err := ioutil.ReadFile("testdata/root.golden.html")
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		assert.Equal(t, golden, bb, string(bb))
 	})
 	t.Run("slug preview", func(t *testing.T) {
@@ -38,7 +38,7 @@ func TestGolden(t *testing.T) {
 		bb, err := ioutil.ReadAll(res.Body)
 		assert.Nil(t, err)
 		golden, err := ioutil.ReadFile("testdata/preview.golden.html")
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		assert.Equal(t, golden, bb, string(bb))
 	})
 }
@@ -58,14 +58,18 @@ func TestCreation(t *testing.T) {
 	})
 }
 
-func TestLookup(t *testing.T) {
+func TestLookupSlug(t *testing.T) {
 	t.Run("from valid shortlink to long link", func(t *testing.T) {
 		t.Skip("unimplemented")
 		assert.True(t, false, "should have redirected")
 	})
-	t.Run("from invalid shortlink to 404", func(t *testing.T) {
+	t.Run("from invalid shortlink, non-url to 404", func(t *testing.T) {
 		t.Skip("unimplemented")
 		assert.True(t, false, "should have 404'd")
+	})
+	t.Run("from invalid shortlink, url to implicit creation", func(t *testing.T) {
+		t.Skip("unimplemented")
+		assert.True(t, false, "should have created")
 	})
 	t.Run("with /preview/ prefix", func(t *testing.T) {
 		t.Skip("unimplemented")

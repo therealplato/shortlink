@@ -3,7 +3,8 @@ package main
 import "errors"
 
 type store interface {
-	Lookup(slug string) (shortlink, error)
+	LookupSlug(slug string) (shortlink, error)
+	LookupLink(link string) (shortlink, error)
 	Save(sl shortlink) error
 }
 
@@ -11,6 +12,8 @@ type pqStore struct {
 	URI     string
 	baseURL string
 }
+
+var ErrNotFound = errors.New("item not found")
 
 func NewPQStore(cfg config) *pqStore {
 	return &pqStore{
@@ -26,7 +29,14 @@ func (s *pqStore) Validate(cfg config) error {
 	return nil
 }
 
-func (s *pqStore) Lookup(slug string) (shortlink, error) {
+func (s *pqStore) LookupSlug(slug string) (shortlink, error) {
+	return shortlink{
+		slug: "asdf",
+		link: "hjkl",
+		base: "http://localhost:8000",
+	}, nil
+}
+func (s *pqStore) LookupLink(slug string) (shortlink, error) {
 	return shortlink{
 		slug: "asdf",
 		link: "hjkl",
@@ -45,7 +55,15 @@ type mockStore struct {
 	err  error
 }
 
-func (s *mockStore) Lookup(slug string) (shortlink, error) {
+func (s *mockStore) LookupSlug(slug string) (shortlink, error) {
+	return shortlink{
+		slug: s.slug,
+		link: s.link,
+		base: s.base,
+	}, s.err
+}
+
+func (s *mockStore) LookupLink(slug string) (shortlink, error) {
 	return shortlink{
 		slug: s.slug,
 		link: s.link,

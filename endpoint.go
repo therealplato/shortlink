@@ -27,24 +27,48 @@ func NewEndpoint(ctx context.Context, cfg config, store store) *endpoint {
 }
 
 func (e *endpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// Explicit creation:
 	if r.Method == http.MethodPost {
 		e.create(w, r)
 		return
 	}
-	switch r.URL.Path {
-	case "/", "":
+	// Landing:
+	if strings.TrimLeft(r.URL.Path, "/") == "" {
 		_, err := w.Write(root)
 		if err != nil {
 			log.Println(err)
 		}
 		return
-	default:
-		e.slug(w, r)
+	}
+	// Explicit preview:
+	if strings.HasPrefix(r.URL.Path, "/preview") {
+		e.preview(w, r)
 		return
 	}
+	// Slug lookup or implict creation:
+	e.slug(w, r)
 }
 
+// slug may be invoked with a known slug, an unknown slug, or a url to shorten
 func (e *endpoint) slug(w http.ResponseWriter, r *http.Request) {
+	var (
+		input = strings.TrimLeft(r.URL.Path, "/")
+		sl    shortlink
+		err   error
+	)
+	sl, err = e.store.LookupSlug(input)
+	if err == ErrNotFound {
+		sl = shortlink{
+			slug: randomSlug(),
+			link: input,
+		}
+		err = e.store.Save(sl)
+	}
+	if err != nil {
+		log.Printf("slug error: %q\n", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	// lookup slug maybe 404
 	// if referrer is self, display a friendly shortlink info page
 	// else redirect
@@ -71,6 +95,10 @@ func (e *endpoint) create(w http.ResponseWriter, r *http.Request) {
 	// instantiate shortlink
 	// persist
 	return
+}
+
+func (e *endpoint) preview(w http.ResponseWriter, r *http.Request) {
+	// lookup slug maybe 404
 }
 
 func handleNotFound(w http.ResponseWriter) {
