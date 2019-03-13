@@ -11,8 +11,9 @@ clean:
 	docker-compose kill
 	rm -f ${ARTIFACT}
 
+build: GOOS = linux
 build: clean
-	GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o $(APP) 
+	GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o $(APP)
 
 image: TAG ?= latest
 image: GOOS = linux
@@ -26,9 +27,12 @@ image-and-push: test image
 test:
 	go test
 
-run: GOOS = linux
 run: build
-	docker-compose up -d --build shortlink
+	docker-compose up -d --build shortlink postgres
 
-bake: clean run
+migrate: run
+  docker-compose exec postgres psql -Udocker -c "insert into shortlink (slug, link) values ('abc', 'http://therealplato.com')" docker
+
+bake: migrate
 	curl -s localhost:8000 > testdata/root.golden.html
+	curl -s localhost:8000/preview/abc > testdata/preview.golden.html

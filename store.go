@@ -37,3 +37,22 @@ func (s *pqStore) Lookup(slug string) (shortlink, error) {
 func (s *pqStore) Save(sl shortlink) error {
 	return errors.New("unimplemented")
 }
+
+type mockStore struct {
+	slug string
+	link string
+	base string
+	err  error
+}
+
+func (s *mockStore) Lookup(slug string) (shortlink, error) {
+	return shortlink{
+		slug: s.slug,
+		link: s.link,
+		base: s.base,
+	}, s.err
+}
+
+func (s *mockStore) Save(sl shortlink) error {
+	return s.err
+}

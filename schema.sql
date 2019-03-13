@@ -1,8 +1,3 @@
-CREATE TABLE metadata (
-  base_url TEXT NOT NULL CHECK (right (base_url, 1) = '/'),
-  PRIMARY KEY (base_url)
-);
-
 CREATE TABLE shortlink (
   id SERIAL,
   link TEXT NOT NULL UNIQUE,
@@ -10,11 +5,24 @@ CREATE TABLE shortlink (
   PRIMARY KEY (slug)
 );
 
+/*
 CREATE TABLE clicks (
   id SERIAL,
   link_id INT NOT NULL,
-  timestamp TIMESTAMP WITH TIME ZONE,
-  header_key TEXT NOT NULL,
-  header_value TEXT NOT NULL,
-  PRIMARY KEY (link_id)
+  metadata_id INT,
+  PRIMARY KEY (id)
 );
+
+CREATE TABLE click_metadata (
+  id SERIAL,
+  timestamp TIMESTAMP WITH TIME ZONE,
+  useragent_id INT,
+  PRIMARY KEY (id)
+);
+CREATE TABLE useragents (
+  id SERIAL,
+  useragent TEXT NOT NULL UNIQUE,
+  UNIQUE (useragent),
+  PRIMARY KEY (id)
+);
+*/

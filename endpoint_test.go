@@ -10,16 +10,37 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestRootRendersUI(t *testing.T) {
-	e := &endpoint{}
-	s := httptest.NewServer(e)
-	res, err := http.Get(s.URL)
-	require.Nil(t, err)
-	bb, err := ioutil.ReadAll(res.Body)
-	assert.Nil(t, err)
-	golden, err := ioutil.ReadFile("testdata/root.golden.html")
-	assert.Nil(t, err)
-	assert.Equal(t, golden, bb, string(bb))
+func TestGolden(t *testing.T) {
+	t.Run("root form", func(t *testing.T) {
+		e := &endpoint{}
+		s := httptest.NewServer(e)
+		res, err := http.Get(s.URL)
+		require.Nil(t, err)
+		bb, err := ioutil.ReadAll(res.Body)
+		assert.Nil(t, err)
+		golden, err := ioutil.ReadFile("testdata/root.golden.html")
+		assert.Nil(t, err)
+		assert.Equal(t, golden, bb, string(bb))
+	})
+	t.Run("slug preview", func(t *testing.T) {
+		e := &endpoint{}
+		sv := httptest.NewServer(e)
+		st := &mockStore{
+			slug: "preview/abc",
+			link: "https://therealplato.com",
+			base: sv.URL,
+			err:  nil,
+		}
+		e.store = st
+
+		res, err := http.Get(sv.URL)
+		require.Nil(t, err)
+		bb, err := ioutil.ReadAll(res.Body)
+		assert.Nil(t, err)
+		golden, err := ioutil.ReadFile("testdata/preview.golden.html")
+		assert.Nil(t, err)
+		assert.Equal(t, golden, bb, string(bb))
+	})
 }
 
 func TestCreation(t *testing.T) {
