@@ -103,12 +103,14 @@ func (e *endpoint) createPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+retry:
 	for {
 		err := e.store.Save(sl)
 		switch err {
 		case nil:
-			break
+			break retry
 		case ErrDupe:
+			// TODO: depending on updatesAllowed, update or redirect to current
 			sl.slug = randomSlug()
 			continue
 		default:
@@ -137,11 +139,12 @@ func (e *endpoint) createGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+retry:
 	for {
 		err := e.store.Save(sl)
 		switch err {
 		case nil:
-			break
+			break retry
 		case ErrDupe:
 			sl.slug = randomSlug()
 			continue
