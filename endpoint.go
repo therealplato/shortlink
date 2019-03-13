@@ -53,41 +53,43 @@ func (e *endpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (e *endpoint) slug(w http.ResponseWriter, r *http.Request) {
 	var (
 		input = strings.TrimLeft(r.URL.Path, "/")
+		isURL = rxProbableURL.MatchString(input)
 		sl    shortlink
 		err   error
 	)
+	if isURL {
+		e.create(w, r)
+		return
+	}
 	sl, err = e.store.LookupSlug(input)
 	if err == ErrNotFound {
-		sl = shortlink{
-			slug: randomSlug(),
-			link: input,
-		}
-		err = e.store.Save(sl)
+		handleNotFound(w)
+		return
 	}
 	if err != nil {
 		log.Printf("slug error: %q\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	// lookup slug maybe 404
-	// if referrer is self, display a friendly shortlink info page
-	// else redirect
-	// sl, err := e.store.Lookup(r.URL.Path)
-	// if err == sql.ErrNoRows {
-	// 	handleNotFound(w)
-	// }
-	// sl.Handle(w, r)
+	http.Redirect(w, r, sl.link, http.StatusFound)
 }
 
 func (e *endpoint) create(w http.ResponseWriter, r *http.Request) {
 	slug := slugify(r.URL.Path)
 
+	// it might come in path instead of form
 	link := r.FormValue("link")
 	if link == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("requires valid URL as 'link' form parameter"))
 		return
 	}
+	//
+	// sl = shortlink{
+	// 	slug: randomSlug(),
+	// 	link: input,
+	// }
+	// err = e.store.Save(sl)
 
 	fmt.Printf("Linking %q to %q\n", link, e.cfg.BaseURL+slug)
 	// parse form to get destination url
@@ -109,6 +111,7 @@ func handleNotFound(w http.ResponseWriter) {
 
 var rxSlug = regexp.MustCompile(`^[a-zA-Z0-9\-]+$`)
 var rxNotSlug = regexp.MustCompile(`[^a-zA-Z0-9\-]`)
+var rxProbableURL = regexp.MustCompile(`^https?://`)
 var rxDashes = regexp.MustCompile(`-+`) // repeated dashes
 
 func slugify(s string) string {
