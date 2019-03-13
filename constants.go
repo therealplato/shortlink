@@ -1,5 +1,12 @@
 package main
 
+import "regexp"
+
+var rxSlug = regexp.MustCompile(`^[a-zA-Z0-9\-]+$`)
+var rxNotSlug = regexp.MustCompile(`[^a-zA-Z0-9\-]`)
+var rxProbableURL = regexp.MustCompile(`^https?://`)
+var rxDashes = regexp.MustCompile(`-+`) // repeated dashes
+
 var excuses = []string{
 	"excuse me waiter, there's a 404 in my link",
 	"404 outlook not so good",

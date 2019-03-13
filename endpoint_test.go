@@ -11,10 +11,10 @@ import (
 )
 
 func TestGolden(t *testing.T) {
+	e := &endpoint{}
+	sv := httptest.NewServer(e)
 	t.Run("root form", func(t *testing.T) {
-		e := &endpoint{}
-		s := httptest.NewServer(e)
-		res, err := http.Get(s.URL)
+		res, err := http.Get(sv.URL)
 		require.Nil(t, err)
 		bb, err := ioutil.ReadAll(res.Body)
 		assert.Nil(t, err)
@@ -23,8 +23,6 @@ func TestGolden(t *testing.T) {
 		assert.Equal(t, golden, bb, string(bb))
 	})
 	t.Run("slug preview", func(t *testing.T) {
-		e := &endpoint{}
-		sv := httptest.NewServer(e)
 		st := &mockStore{
 			slug: "preview/abc",
 			link: "https://therealplato.com",

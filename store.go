@@ -14,6 +14,7 @@ type pqStore struct {
 }
 
 var ErrNotFound = errors.New("item not found")
+var ErrDupe = errors.New("unique identifier collision")
 
 func NewPQStore(cfg config) *pqStore {
 	return &pqStore{

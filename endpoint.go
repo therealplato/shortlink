@@ -6,7 +6,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
-	"regexp"
+	"net/url"
 	"strings"
 )
 
@@ -29,7 +29,7 @@ func NewEndpoint(ctx context.Context, cfg config, store store) *endpoint {
 func (e *endpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Explicit creation:
 	if r.Method == http.MethodPost {
-		e.create(w, r)
+		e.createPost(w, r)
 		return
 	}
 	// Landing:
@@ -58,7 +58,7 @@ func (e *endpoint) slug(w http.ResponseWriter, r *http.Request) {
 		err   error
 	)
 	if isURL {
-		e.create(w, r)
+		e.createGet(w, r)
 		return
 	}
 	sl, err = e.store.LookupSlug(input)
@@ -67,40 +67,104 @@ func (e *endpoint) slug(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
-		log.Printf("slug error: %q\n", err)
+		log.Printf("slug: %q error: %q\n", input, err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	http.Redirect(w, r, sl.link, http.StatusFound)
 }
 
-func (e *endpoint) create(w http.ResponseWriter, r *http.Request) {
-	slug := slugify(r.URL.Path)
-
-	// it might come in path instead of form
-	link := r.FormValue("link")
-	if link == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("requires valid URL as 'link' form parameter"))
+// receie a POST with slug and link
+func (e *endpoint) createPost(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
-	//
-	// sl = shortlink{
-	// 	slug: randomSlug(),
-	// 	link: input,
-	// }
-	// err = e.store.Save(sl)
+	sl := shortlink{}
+	err := r.ParseForm()
+	if err != nil {
+		handleNotFound(w)
+		return
+	}
+	sl.slug = r.PostFormValue("slug")
+	sl.link = r.PostFormValue("link")
+	if sl.slug == "" {
+		sl.slug = randomSlug()
+	}
+	if sl.link == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("missing 'link' form parameter"))
+		return
+	}
+	_, err = url.Parse(sl.link)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("link did not parse as url"))
+		return
+	}
 
-	fmt.Printf("Linking %q to %q\n", link, e.cfg.BaseURL+slug)
-	// parse form to get destination url
-	// generate slug
-	// instantiate shortlink
-	// persist
+	for {
+		err := e.store.Save(sl)
+		switch err {
+		case nil:
+			break
+		case ErrDupe:
+			sl.slug = randomSlug()
+			continue
+		default:
+			log.Printf("saving failed: %#v", sl)
+			handleNotFound(w)
+			return
+		}
+	}
+	fmt.Printf("%q -> %q\n", sl.slug, sl.link)
+	http.Redirect(w, r, "/preview/"+sl.slug, http.StatusFound)
+	return
+}
+func (e *endpoint) createGet(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+	}
+
+	sl := shortlink{
+		slug: randomSlug(),
+		link: strings.TrimLeft(r.URL.Path, "/"),
+	}
+	_, err := url.Parse(sl.link)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("link did not parse as url"))
+		return
+	}
+
+	for {
+		err := e.store.Save(sl)
+		switch err {
+		case nil:
+			break
+		case ErrDupe:
+			sl.slug = randomSlug()
+			continue
+		default:
+			log.Printf("saving failed: %#v", sl)
+			handleNotFound(w)
+			return
+		}
+	}
+	fmt.Printf("%q -> %q\n", sl.slug, sl.link)
+	http.Redirect(w, r, "/preview/"+sl.slug, http.StatusFound)
 	return
 }
 
 func (e *endpoint) preview(w http.ResponseWriter, r *http.Request) {
-	// lookup slug maybe 404
+	log.Printf("preview %q\n", r.URL.Path)
+	slug := strings.TrimLeft(r.URL.Path, "/preview/")
+	sl, err := e.store.LookupSlug(slug)
+	if err != nil {
+		handleNotFound(w)
+		return
+	}
+	fmt.Fprintf(w, "%q -> %q\n", sl.slug, sl.link)
 }
 
 func handleNotFound(w http.ResponseWriter) {
@@ -109,21 +173,19 @@ func handleNotFound(w http.ResponseWriter) {
 	w.Write([]byte(m))
 }
 
-var rxSlug = regexp.MustCompile(`^[a-zA-Z0-9\-]+$`)
-var rxNotSlug = regexp.MustCompile(`[^a-zA-Z0-9\-]`)
-var rxProbableURL = regexp.MustCompile(`^https?://`)
-var rxDashes = regexp.MustCompile(`-+`) // repeated dashes
+func randomSlug() string {
+	a := fragments[rand.Intn(len(fragments))]
+	b := fragments[rand.Intn(len(fragments))]
+	c := fragments[rand.Intn(len(fragments))]
+	return fmt.Sprintf("%s%s%s", a, b, c)
+}
 
+/*
 func slugify(s string) string {
 	s = rxNotSlug.ReplaceAllString(s, "-")
 	s = rxDashes.ReplaceAllString(s, "-")
 	s = strings.Trim(s, "-")
 	return s
 }
-
-func randomSlug() string {
-	a := fragments[rand.Intn(len(fragments))]
-	b := fragments[rand.Intn(len(fragments))]
-	c := fragments[rand.Intn(len(fragments))]
-	return fmt.Sprintf("%s-%s-%s", a, b, c)
-}
+// TODO: have store give fresh slugs
+*/
