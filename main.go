@@ -16,8 +16,9 @@ func main() {
 	log.Println("config loaded")
 	l := lifecycle.Begin()
 	go l.HealthCheck(cfg.HealthcheckAddr)
-	store := NewPQStore(cfg)
-	e := NewEndpoint(l.Ctx, cfg, store)
+	st := NewPQStore(cfg)
+	st.MustConn()
+	e := NewEndpoint(l.Ctx, cfg, st)
 
 	sv := http.Server{
 		Addr:    cfg.ShortlinkAddr,

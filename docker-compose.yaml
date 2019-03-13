@@ -3,7 +3,7 @@ services:
   shortlink:
     build: .
     environment:
-      POSTGRES_URI: postgres://root@postgres/shortlink
+      POSTGRES_URI: "postgres://docker:docker@postgres/docker?sslmode=disable"
       SHORTLINK_LISTEN_ADDR: ":8000"
       HEALTHCHECK_LISTEN_ADDR: ":9000"
       BASE_URL: "http://localhost:8000/"
@@ -22,7 +22,7 @@ services:
       POSTGRES_PASSWORD: docker
       POSTGRES_DB: docker
     healthcheck:
-      test: ["CMD", "psql", "-Udocker", "-c", "select 1", "docker"]
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
-      timeout: 10s
-      retries: 3
+      timeout: 5s
+      retries: 5
