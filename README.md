@@ -9,6 +9,15 @@ SHORTLINK_LISTEN_ADDR
 BASE_URL (this is the prefix to all short links, with a trailing slash)
 POSTGRES_URI
 
+Setup
+-----
+Getting Postgres into the correct state and keeping it there is out of scope of this project.
+The most basic manual setup:
+```
+psql -hmydb.foo -Umyuser -c "CREATE DATABASE shortlink" template1
+psql -hmydb.foo -Umyuser -f $GOPATH/src/therealplato/shortlink/schema.sql shortlink
+```
+
 Usage
 -----
 Request BASE_URL. You'll get a landing page with a form where you submit the link you want to shorten. After submission, you'll land on
