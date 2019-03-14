@@ -23,7 +23,8 @@ func (e *endpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Landing:
-	if strings.TrimLeft(r.URL.Path, "/") == "" {
+	suffix := strings.TrimPrefix(r.URL.String(), e.baseURL)
+	if strings.TrimLeft(suffix, "/") == "" {
 		_, err := w.Write(root)
 		if err != nil {
 			log.Println(err)
@@ -31,7 +32,7 @@ func (e *endpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Explicit preview:
-	if strings.HasPrefix(r.URL.Path, "/preview") {
+	if strings.HasPrefix(suffix, "/preview") {
 		e.preview(w, r)
 		return
 	}
@@ -42,10 +43,11 @@ func (e *endpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // slug may be invoked with a known slug, an unknown slug, or a url to shorten
 func (e *endpoint) slug(w http.ResponseWriter, r *http.Request) {
 	var (
-		input = strings.TrimLeft(r.URL.Path, "/")
-		isURL = rxProbableURL.MatchString(input)
-		sl    shortlink
-		err   error
+		suffix = strings.TrimPrefix(r.URL.String(), e.baseURL)
+		input  = strings.TrimLeft(suffix, "/")
+		isURL  = rxProbableURL.MatchString(input)
+		sl     shortlink
+		err    error
 	)
 	if isURL {
 		e.createGet(w, r)
@@ -110,18 +112,23 @@ retry:
 		}
 	}
 	fmt.Printf("%q -> %q\n", sl.slug, sl.link)
-	http.Redirect(w, r, "/preview/"+sl.slug, http.StatusFound)
+	http.Redirect(w, r, e.baseURL+"preview/"+sl.slug, http.StatusFound)
 	return
 }
+
 func (e *endpoint) createGet(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
+	var (
+		suffix = strings.TrimPrefix(r.URL.String(), e.baseURL)
+		input  = strings.TrimLeft(suffix, "/")
+		sl     = shortlink{
+			slug: randomSlug(),
+			link: input,
+		}
+	)
 
-	sl := shortlink{
-		slug: randomSlug(),
-		link: strings.TrimLeft(r.URL.Path, "/"),
-	}
 	_, err := url.Parse(sl.link)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -145,13 +152,16 @@ retry:
 		}
 	}
 	fmt.Printf("%q -> %q\n", sl.slug, sl.link)
-	http.Redirect(w, r, "/preview/"+sl.slug, http.StatusFound)
+	http.Redirect(w, r, e.baseURL+"preview/"+sl.slug, http.StatusFound)
 	return
 }
 
 func (e *endpoint) preview(w http.ResponseWriter, r *http.Request) {
 	log.Printf("preview %q\n", r.URL.Path)
-	slug := strings.TrimLeft(r.URL.Path, "/preview/")
+	var (
+		suffix = strings.TrimPrefix(r.URL.String(), e.baseURL)
+		slug   = strings.TrimPrefix(suffix, "/preview/")
+	)
 	sl, err := e.store.LookupSlug(slug)
 	if err != nil {
 		handleNotFound(w)

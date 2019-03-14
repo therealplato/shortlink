@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// Golden output is populated by make bake
 func TestGolden(t *testing.T) {
 	e := &endpoint{}
 	sv := httptest.NewServer(e)
@@ -24,14 +25,14 @@ func TestGolden(t *testing.T) {
 	})
 	t.Run("slug preview", func(t *testing.T) {
 		st := &mockStore{
-			slug: "preview/abc",
-			link: "https://therealplato.com",
-			base: sv.URL,
+			slug: "abc",
+			link: "http://therealplato.com",
 			err:  nil,
 		}
 		e.store = st
+		e.baseURL = "http://localhost:8000/"
 
-		res, err := http.Get(sv.URL)
+		res, err := http.Get(sv.URL + "/preview/abc")
 		require.Nil(t, err)
 		bb, err := ioutil.ReadAll(res.Body)
 		assert.Nil(t, err)
