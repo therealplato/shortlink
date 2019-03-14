@@ -11,19 +11,9 @@ import (
 )
 
 type endpoint struct {
-	ctx   context.Context
-	store store
-	cfg   config
-}
-
-// NewEndpoint instantiates a shortlink endpoint
-func NewEndpoint(ctx context.Context, cfg config, store store) *endpoint {
-	e := &endpoint{
-		ctx:   ctx,
-		store: store,
-		cfg:   cfg,
-	}
-	return e
+	ctx     context.Context
+	store   store
+	baseURL string
 }
 
 func (e *endpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -167,7 +157,7 @@ func (e *endpoint) preview(w http.ResponseWriter, r *http.Request) {
 		handleNotFound(w)
 		return
 	}
-	fmt.Fprintf(w, "%q -> %q\n", sl.slug, sl.link)
+	fmt.Fprintf(w, "%s%s -> %s\n", e.baseURL, sl.slug, sl.link)
 }
 
 func handleNotFound(w http.ResponseWriter) {

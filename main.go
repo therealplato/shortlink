@@ -18,7 +18,11 @@ func main() {
 	go l.HealthCheck(cfg.HealthcheckAddr)
 	st := NewPQStore(cfg)
 	st.MustConn()
-	e := NewEndpoint(l.Ctx, cfg, st)
+	e := &endpoint{
+		ctx:     l.Ctx,
+		store:   st,
+		baseURL: cfg.BaseURL,
+	}
 
 	sv := http.Server{
 		Addr:    cfg.ShortlinkAddr,

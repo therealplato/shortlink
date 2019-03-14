@@ -31,7 +31,7 @@ run: build
 	docker-compose up -d --build shortlink postgres
 
 migrate: run
-	docker-compose exec postgres psql -Udocker -c "insert into shortlink (slug, link) values ('abc', 'http://therealplato.com')" docker
+	docker-compose exec postgres psql -Udocker -c "insert into shortlink (slug, link) values ('abc', 'http://therealplato.com') ON CONFLICT DO NOTHING" docker
 
 bake: migrate
 	curl -s localhost:8000 > testdata/root.golden.html

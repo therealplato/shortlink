@@ -22,6 +22,7 @@ var excuses = []string{
 	"oops 4 0 4 again",
 	"you better lose yourself in the music, the moment, you hold it, you better never 404",
 	"i feel stupid, and contagious, 404 now, imitate us",
+	"no one knows what it's like, to 404, man",
 }
 
 var fragments = []string{
