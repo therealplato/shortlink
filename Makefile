@@ -1,6 +1,5 @@
-VERSION=0.1.0
 APP = shortlink
-IMAGE_NAME = therealplato/$(APP):$(VERSION)
+IMAGE_NAME = therealplato/$(APP):$(TAG)
 
 GOOS = $(shell uname | tr '[:upper:]' '[:lower:]')
 GOARCH = amd64
@@ -17,11 +16,12 @@ build: clean
 
 image: TAG ?= latest
 image: GOOS = linux
+image: test
 image: build
 	docker build -t $(IMAGE_NAME) .
 
 image-and-push: TAG ?= latest
-image-and-push: test image
+image-and-push: image
 	docker push $(IMAGE_NAME)
 
 test:

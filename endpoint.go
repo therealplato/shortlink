@@ -16,26 +16,37 @@ type endpoint struct {
 	baseURL string
 }
 
+// WithoutBaseURL returns r.URL.String() without the base url and without leading slash
+func withoutBaseURL(baseURL string, r *http.Request) string {
+	suffix := strings.TrimPrefix(r.URL.String(), baseURL)
+	suffix = strings.TrimLeft(suffix, "/")
+	return suffix
+}
+
 func (e *endpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	fmt.Printf("%v %q\n", r.Method, r.URL.String())
 	// Explicit creation:
 	if r.Method == http.MethodPost {
 		e.createPost(w, r)
 		return
 	}
+
 	// Landing:
-	suffix := strings.TrimPrefix(r.URL.String(), e.baseURL)
-	if strings.TrimLeft(suffix, "/") == "" {
+	suffix := withoutBaseURL(e.baseURL, r)
+	if suffix == "" {
 		_, err := w.Write(root)
 		if err != nil {
 			log.Println(err)
 		}
 		return
 	}
+
 	// Explicit preview:
-	if strings.HasPrefix(suffix, "/preview") {
+	if strings.HasPrefix(suffix, "preview") {
 		e.preview(w, r)
 		return
 	}
+
 	// Slug lookup or implict creation:
 	e.slug(w, r)
 }
@@ -43,9 +54,8 @@ func (e *endpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // slug may be invoked with a known slug, an unknown slug, or a url to shorten
 func (e *endpoint) slug(w http.ResponseWriter, r *http.Request) {
 	var (
-		suffix = strings.TrimPrefix(r.URL.String(), e.baseURL)
-		input  = strings.TrimLeft(suffix, "/")
-		isURL  = rxProbableURL.MatchString(input)
+		suffix = withoutBaseURL(e.baseURL, r)
+		isURL  = rxProbableURL.MatchString(suffix)
 		sl     shortlink
 		err    error
 	)
@@ -53,13 +63,15 @@ func (e *endpoint) slug(w http.ResponseWriter, r *http.Request) {
 		e.createGet(w, r)
 		return
 	}
-	sl, err = e.store.LookupSlug(input)
-	if err == ErrNotFound {
+	sl, err = e.store.LookupSlug(suffix)
+	switch err {
+	case ErrNotFound:
 		handleNotFound(w)
 		return
-	}
-	if err != nil {
-		log.Printf("slug: %q error: %q\n", input, err)
+	case nil:
+		break
+	default:
+		log.Printf("slug: %q error: %q\n", suffix, err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -121,11 +133,10 @@ func (e *endpoint) createGet(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
 	var (
-		suffix = strings.TrimPrefix(r.URL.String(), e.baseURL)
-		input  = strings.TrimLeft(suffix, "/")
+		suffix = withoutBaseURL(e.baseURL, r)
 		sl     = shortlink{
 			slug: randomSlug(),
-			link: input,
+			link: suffix,
 		}
 	)
 
@@ -157,17 +168,23 @@ retry:
 }
 
 func (e *endpoint) preview(w http.ResponseWriter, r *http.Request) {
-	log.Printf("preview %q\n", r.URL.Path)
-	var (
-		suffix = strings.TrimPrefix(r.URL.String(), e.baseURL)
-		slug   = strings.TrimPrefix(suffix, "/preview/")
-	)
-	sl, err := e.store.LookupSlug(slug)
+	suffix := withoutBaseURL(e.baseURL, r)
+	suffix = strings.TrimPrefix(suffix, "preview/")
+	sl, err := e.store.LookupSlug(suffix)
 	if err != nil {
 		handleNotFound(w)
 		return
 	}
-	fmt.Fprintf(w, "%s%s -> %s\n", e.baseURL, sl.slug, sl.link)
+	fmt.Fprintf(w, `
+<!DOCTYPE html>
+<html><body>
+<a href="%s%s">%s%s</a>
+<br> -> <br>
+<a href="%s">%s</a>
+</body></html>
+`, e.baseURL, sl.slug,
+		e.baseURL, sl.slug,
+		sl.link, sl.link)
 }
 
 func handleNotFound(w http.ResponseWriter) {

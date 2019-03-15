@@ -59,8 +59,17 @@ func TestCreation(t *testing.T) {
 
 func TestLookupSlug(t *testing.T) {
 	t.Run("from valid shortlink to long link", func(t *testing.T) {
-		t.Skip("unimplemented")
-		assert.True(t, false, "should have redirected")
+		st := &mockStore{
+			slug: "abc",
+			link: "https://duck.com",
+		}
+		e := &endpoint{store: st, baseURL: "https://base.url/still/"}
+		req, err := http.NewRequest(http.MethodGet, "https://base.url/still/abc", nil)
+		require.Nil(t, err)
+		rr := httptest.NewRecorder()
+		e.ServeHTTP(rr, req)
+		assert.Equal(t, http.StatusFound, rr.Code, "should be %v", http.StatusFound)
+		assert.Equal(t, st.link, rr.Header().Get("Location"), "should have Location header")
 	})
 	t.Run("from invalid shortlink, non-url to 404", func(t *testing.T) {
 		t.Skip("unimplemented")

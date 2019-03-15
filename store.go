@@ -98,6 +98,7 @@ func (s *pqStore) LookupLink(link string) (shortlink, error) {
 func (s *pqStore) Save(sl shortlink) error {
 	s.MustConn()
 	_, err := s.db.Exec(`INSERT INTO shortlink (slug, link) VALUES ($1, $2)`, sl.slug, sl.link)
+	// _, err := s.db.Exec(`INSERT INTO shortlink (slug, link) VALUES ($1, $2) ON CONFLICT UPDATE link=link RETURNING (slug, link)`, sl.slug, sl.link)
 	return err
 }
 

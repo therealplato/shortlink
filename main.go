@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"time"
 
@@ -16,6 +17,9 @@ func main() {
 	log.Println("config loaded")
 	l := lifecycle.Begin()
 	go l.HealthCheck(cfg.HealthcheckAddr)
+
+	rand.Seed(time.Now().UnixNano())
+
 	st := NewPQStore(cfg)
 	st.MustConn()
 	e := &endpoint{
